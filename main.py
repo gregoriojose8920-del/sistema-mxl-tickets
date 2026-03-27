@@ -4,19 +4,16 @@ import os
 
 app = Flask(__name__)
 
-# Función para crear la base de datos de los 5,000 boletos
 def init_db():
     db_path = '/tmp/mxl_tickets.db'
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
     cursor.execute('CREATE TABLE IF NOT EXISTS stock (tipo TEXT PRIMARY KEY, total INTEGER, vendidos INTEGER, precio REAL)')
-    # Datos iniciales: VIP (1,000), Regular (3,500), Guest (500)
     data = [('VIP', 1000, 0, 1500), ('Regular', 3500, 0, 500), ('Guest', 500, 0, 0)]
     cursor.executemany("INSERT OR IGNORE INTO stock VALUES (?,?,?,?)", data)
     conn.commit()
     conn.close()
 
-# HTML con diseño dorado para MXL
 HTML = """<!DOCTYPE html>
 <html>
 <head>
@@ -46,7 +43,7 @@ HTML = """<!DOCTYPE html>
 
 @app.route('/')
 def index():
-    init_db() # Nos aseguramos de que la DB exista al entrar
+    init_db()
     conn = sqlite3.connect('/tmp/mxl_tickets.db')
     data = conn.execute('SELECT * FROM stock').fetchall()
     conn.close()
@@ -60,8 +57,7 @@ def vender(tipo):
     conn.close()
     return redirect('/')
 
-# El encendido oficial para Railway
+# ⚠️ CRUCIAL: Esta parte es solo para Railway
 if __name__ == "__main__":
-    # Importante: Railway usa el puerto 8080 por defecto
     port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port, debug=False)
+    app.run(host='0.0.0.0', port=port)
