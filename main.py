@@ -58,13 +58,3 @@ def vender(tipo):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
-```
-
-**`requirements.txt`**:
-```
-flask
-```
-
-**Y en Railway → Settings → Deploy → Custom Start Command** pon:
-```
-python main.py
