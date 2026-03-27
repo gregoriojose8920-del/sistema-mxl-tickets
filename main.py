@@ -10,10 +10,7 @@ def init_db():
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS stock (
-            tipo TEXT PRIMARY KEY, 
-            total INTEGER, 
-            vendidos INTEGER, 
-            precio REAL
+            tipo TEXT PRIMARY KEY, total INTEGER, vendidos INTEGER, precio REAL
         )
     ''')
     data = [('VIP', 1000, 0, 1500.0), ('Regular', 3500, 0, 500.0), ('Guest', 500, 0, 0.0)]
@@ -21,67 +18,64 @@ def init_db():
     conn.commit()
     conn.close()
 
-# DISEÑO CON PANEL DE PRECIOS
-HTML = """<!DOCTYPE html>
-<html lang="es">
+# --- DISEÑO PARA EL VENDEDOR (PÚBLICO) ---
+HTML_VENDEDOR = """<!DOCTYPE html>
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SISTEMA MXL PRO</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MXL - VENTAS</title>
     <style>
-        :root { --gold: #D4AF37; --dark: #121212; --card: #1E1E1E; --text: #E0E0E0; }
-        body { font-family: sans-serif; background: var(--dark); color: var(--text); margin: 0; padding: 15px; }
-        .header { text-align: center; padding: 20px; border-bottom: 2px solid var(--gold); margin-bottom: 20px; }
-        h1 { color: var(--gold); margin: 0; letter-spacing: 2px; }
-        .card { background: var(--card); border-radius: 15px; margin-bottom: 15px; padding: 15px; border-left: 5px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.4); }
-        .stats { display: flex; justify-content: space-between; align-items: center; margin: 10px 0; }
-        .price { color: #4CAF50; font-weight: bold; font-size: 1.2em; }
-        .btn { background: var(--gold); color: black; text-decoration: none; padding: 15px; border-radius: 10px; display: block; text-align: center; font-weight: bold; margin-top: 10px; }
-        
-        /* Estilos del Panel de Admin */
-        .admin-section { margin-top: 40px; padding: 20px; background: #222; border-radius: 15px; border: 1px dashed var(--gold); }
-        .admin-section h3 { color: var(--gold); margin-top: 0; }
-        .input-group { margin-bottom: 15px; text-align: left; }
-        input { width: 100%; padding: 10px; border-radius: 5px; border: 1px solid #444; background: #333; color: white; box-sizing: border-box; }
-        .btn-save { background: #4CAF50; border: none; width: 100%; color: white; padding: 15px; border-radius: 10px; font-weight: bold; cursor: pointer; }
+        body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 15px; }
+        .card { background: #1E1E1E; border-radius: 15px; margin-bottom: 15px; padding: 20px; border-left: 6px solid #D4AF37; }
+        .btn-vender { background: #D4AF37; color: black; text-decoration: none; padding: 18px; border-radius: 12px; display: block; font-weight: bold; font-size: 1.2em; margin-top: 10px; }
+        h1 { color: #D4AF37; }
+        .price { color: #4CAF50; font-size: 1.3em; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="header">
-        <h1>SISTEMA MXL</h1>
-        <small>VENTA DE TICKETS OFICIAL</small>
-    </div>
-
+    <h1>SISTEMA MXL</h1>
+    <p>PUNTO DE VENTA AUTOMÁTICO</p>
     {% for s in data %}
     <div class="card">
-        <div style="display:flex; justify-content:space-between;">
-            <h2 style="margin:0;">{{ s[0] }}</h2>
-            <span style="color:var(--gold)">Disponibles: {{ s[1] - s[2] }}</span>
-        </div>
-        <div class="stats">
-            <span class="price">RD$ {{ "{:,.2f}".format(s[3]) }}</span>
-        </div>
-        <a href="/vender/{{ s[0] }}" class="btn">VENDER TICKET</a>
+        <h2>{{ s[0] }}</h2>
+        <div class="price">RD$ {{ "{:,.2f}".format(s[3]) }}</div>
+        <p>Disponibles: <b>{{ s[1] - s[2] }}</b></p>
+        <a href="/vender/{{ s[0] }}" class="btn-vender">VENDER {{ s[0] }}</a>
     </div>
     {% endfor %}
+</body>
+</html>"""
 
-    <!-- PANEL PARA CAMBIAR PRECIOS -->
-    <div class="admin-section">
-        <h3>⚙️ PANEL DE PRECIOS (ADMIN)</h3>
+# --- DISEÑO PARA EL ADMINISTRADOR (SOLO TÚ) ---
+HTML_ADMIN = """<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MXL - PANEL CONTROL</title>
+    <style>
+        body { font-family: sans-serif; background: #f4f4f4; color: #333; padding: 20px; }
+        .panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
+        h1 { color: #121212; border-bottom: 2px solid #D4AF37; padding-bottom: 10px; }
+        .row { margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #ddd; }
+        input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 1.1em; }
+        .btn-save { background: #2ecc71; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
+        .back { display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; }
+    </style>
+</head>
+<body>
+    <div class="panel">
+        <h1>⚙️ Ajustes de Precios</h1>
         <form action="/update_prices" method="POST">
             {% for s in data %}
-            <div class="input-group">
-                <label>Precio {{ s[0] }}:</label>
+            <div class="row">
+                <label>Precio de <b>{{ s[0] }}</b>:</label>
                 <input type="number" name="precio_{{ s[0] }}" value="{{ s[3] }}" step="0.01">
             </div>
             {% endfor %}
-            <button type="submit" class="btn-save">GUARDAR NUEVOS PRECIOS</button>
+            <button type="submit" class="btn-save">GUARDAR CAMBIOS</button>
         </form>
+        <a href="/" class="back">← Volver a Ventas</a>
     </div>
-
-    <p style="font-size: 0.7em; color: #555; text-align: center; margin-top: 20px;">
-        Socio mxl & Gemini © 2026 | Logueado como: Admin
-    </p>
 </body>
 </html>"""
 
@@ -91,7 +85,15 @@ def index():
     conn = sqlite3.connect('/tmp/mxl_tickets.db')
     data = conn.execute('SELECT * FROM stock').fetchall()
     conn.close()
-    return render_template_string(HTML, data=data)
+    return render_template_string(HTML_VENDEDOR, data=data)
+
+@app.route('/admin-mxl') # RUTA SECRETA
+def admin():
+    init_db()
+    conn = sqlite3.connect('/tmp/mxl_tickets.db')
+    data = conn.execute('SELECT * FROM stock').fetchall()
+    conn.close()
+    return render_template_string(HTML_ADMIN, data=data)
 
 @app.route('/vender/<tipo>')
 def vender(tipo):
@@ -104,14 +106,13 @@ def vender(tipo):
 @app.route('/update_prices', methods=['POST'])
 def update_prices():
     conn = sqlite3.connect('/tmp/mxl_tickets.db')
-    # Actualizamos cada precio según lo que se escribió en el formulario
     for tipo in ['VIP', 'Regular', 'Guest']:
         nuevo_precio = request.form.get(f'precio_{tipo}')
         if nuevo_precio:
             conn.execute('UPDATE stock SET precio = ? WHERE tipo = ?', (nuevo_precio, tipo))
     conn.commit()
     conn.close()
-    return redirect('/')
+    return redirect(url_for('admin'))
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
