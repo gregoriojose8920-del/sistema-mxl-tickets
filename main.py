@@ -4,6 +4,7 @@ import os
 
 app = Flask(__name__)
 
+# Configuración de la base de datos de los 5,000 boletos
 def init_db():
     db_path = '/tmp/mxl_tickets.db'
     conn = sqlite3.connect(db_path)
@@ -28,9 +29,9 @@ HTML = """<!DOCTYPE html>
     <title>Tickets MXL</title>
     <style>
         body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
-        .card { background: #333; margin-bottom: 20px; padding: 20px; border-radius: 15px; border-left: 8px solid gold; }
-        .btn { background: gold; color: black; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
-        h1 { color: gold; }
+        .card { background: #333; margin-bottom: 20px; padding: 20px; border-radius: 15px; border-left: 8px solid gold; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+        .btn { background: gold; color: black; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; display: block; margin-top: 10px; font-size: 1.2em; }
+        h1 { color: gold; text-transform: uppercase; }
         .info { font-size: 0.9em; color: #aaa; margin-bottom: 30px; }
     </style>
 </head>
@@ -63,6 +64,8 @@ def vender(tipo):
     conn.close()
     return redirect('/')
 
+# ESTO ES LO QUE CAMBIAMOS PARA QUE FUNCIONE EN RAILWAY
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
-    app.run(host='0.0.0.0', port=port)
+    # Agregamos threaded=True para que el celular y Railway no se traben
+    app.run(host='0.0.0.0', port=port, debug=False, threaded=True)
