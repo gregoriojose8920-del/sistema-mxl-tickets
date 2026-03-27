@@ -13,10 +13,34 @@ def init_db():
     conn.commit()
     conn.close()
 
-# ✅ Esto se ejecuta cuando Gunicorn importa el módulo
 init_db()
 
-HTML = """..."""  # tu HTML igual que antes
+HTML = """
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Tickets mxl</title>
+    <style>
+        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
+        .card { background: #333; margin-bottom: 20px; padding: 20px; border-radius: 15px; border-left: 8px solid gold; }
+        .btn { background: gold; color: black; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; display: block; margin-top: 10px; font-size: 1.2em; }
+        h1 { color: gold; }
+    </style>
+</head>
+<body>
+    <h1>🎟️ SISTEMA MXL - VENTAS</h1>
+    <p>Capacidad: 5,000 Tickets</p>
+    {% for s in data %}
+    <div class="card">
+        <h2>{{ s[0] }}</h2>
+        <p>Precio: ${{ s[3] }} | Disponibles: {{ s[1] - s[2] }}</p>
+        <a href="/vender/{{ s[0] }}" class="btn">VENDER {{ s[0] }}</a>
+    </div>
+    {% endfor %}
+</body>
+</html>
+"""
 
 @app.route('/')
 def index():
@@ -36,8 +60,3 @@ def vender(tipo):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
-```
-
-También verifica que en Railway tengas configurado el **Start Command** como:
-```
-gunicorn main:app --bind 0.0.0.0:$PORT
