@@ -8,9 +8,16 @@ def init_db():
     db_path = '/tmp/mxl_tickets.db'
     conn = sqlite3.connect(db_path)
     cursor = conn.cursor()
-    cursor.execute('CREATE TABLE IF NOT EXISTS stock (tipo TEXT PRIMARY KEY, total INTEGER, vendidos INTEGER, precio REAL)')
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS stock (
+            tipo TEXT PRIMARY KEY, 
+            total INTEGER, 
+            vendidos INTEGER, 
+            precio REAL
+        )
+    ''')
     data = [('VIP', 1000, 0, 1500), ('Regular', 3500, 0, 500), ('Guest', 500, 0, 0)]
-    cursor.executemany("INSERT OR IGNORE INTO stock VALUES (?,?,?,?)", data)
+    cursor.executemany("INSERT OR IGNORE INTO stock VALUES (?, ?, ?, ?)", data)
     conn.commit()
     conn.close()
 
@@ -21,10 +28,9 @@ HTML = """<!DOCTYPE html>
     <title>Tickets MXL</title>
     <style>
         body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
-        .card { background: #333; margin-bottom: 20px; padding: 20px; border-radius: 15px; border-left: 8px solid gold; box-shadow: 0 4px 8px rgba(0,0,0,0.5); }
-        .btn { background: gold; color: black; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; display: block; margin-top: 10px; font-size: 1.2em; transition: 0.3s; }
-        .btn:active { background: orange; }
-        h1 { color: gold; text-transform: uppercase; letter-spacing: 2px; }
+        .card { background: #333; margin-bottom: 20px; padding: 20px; border-radius: 15px; border-left: 8px solid gold; }
+        .btn { background: gold; color: black; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; display: inline-block; margin-top: 10px; }
+        h1 { color: gold; }
         .info { font-size: 0.9em; color: #aaa; margin-bottom: 30px; }
     </style>
 </head>
@@ -57,7 +63,6 @@ def vender(tipo):
     conn.close()
     return redirect('/')
 
-# ⚠️ CRUCIAL: Esta parte es solo para Railway
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
