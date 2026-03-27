@@ -5,7 +5,7 @@ import os
 app = Flask(__name__)
 
 def init_db():
-    conn = sqlite3.connect('mxl_tickets.db')
+    conn = sqlite3.connect('/tmp/mxl_tickets.db')
     cursor = conn.cursor()
     cursor.execute('CREATE TABLE IF NOT EXISTS stock (tipo TEXT PRIMARY KEY, total INTEGER, vendidos INTEGER, precio REAL)')
     data = [('VIP', 1000, 0, 1500), ('Regular', 3500, 0, 500), ('Guest', 500, 0, 0)]
@@ -15,8 +15,7 @@ def init_db():
 
 init_db()
 
-HTML = """
-<!DOCTYPE html>
+HTML = """<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -29,7 +28,7 @@ HTML = """
     </style>
 </head>
 <body>
-    <h1>🎟️ SISTEMA MXL - VENTAS</h1>
+    <h1>Tickets MXL - Ventas</h1>
     <p>Capacidad: 5,000 Tickets</p>
     {% for s in data %}
     <div class="card">
@@ -39,19 +38,18 @@ HTML = """
     </div>
     {% endfor %}
 </body>
-</html>
-"""
+</html>"""
 
 @app.route('/')
 def index():
-    conn = sqlite3.connect('mxl_tickets.db')
+    conn = sqlite3.connect('/tmp/mxl_tickets.db')
     data = conn.execute('SELECT * FROM stock').fetchall()
     conn.close()
     return render_template_string(HTML, data=data)
 
 @app.route('/vender/<tipo>')
 def vender(tipo):
-    conn = sqlite3.connect('mxl_tickets.db')
+    conn = sqlite3.connect('/tmp/mxl_tickets.db')
     conn.execute('UPDATE stock SET vendidos = vendidos + 1 WHERE tipo = ? AND vendidos < total', (tipo,))
     conn.commit()
     conn.close()
@@ -60,3 +58,13 @@ def vender(tipo):
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port, debug=False)
+```
+
+**`requirements.txt`**:
+```
+flask
+```
+
+**Y en Railway → Settings → Deploy → Custom Start Command** pon:
+```
+python main.py
