@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template_string, redirect
 import sqlite3
 import os
@@ -14,32 +13,10 @@ def init_db():
     conn.commit()
     conn.close()
 
-HTML = """
-<!DOCTYPE html>
-<html>
-<head>
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Tickets mxl</title>
-    <style>
-        body { font-family: sans-serif; background: #1a1a1a; color: white; text-align: center; padding: 20px; }
-        .card { background: #333; margin-bottom: 20px; padding: 20px; border-radius: 15px; border-left: 8px solid gold; }
-        .btn { background: gold; color: black; padding: 15px; border-radius: 10px; text-decoration: none; font-weight: bold; display: block; margin-top: 10px; font-size: 1.2em; }
-        h1 { color: gold; }
-    </style>
-</head>
-<body>
-    <h1>🎟️ SISTEMA MXL - VENTAS</h1>
-    <p>Capacidad: 5,000 Tickets</p>
-    {% for s in data %}
-    <div class="card">
-        <h2>{{ s[0] }}</h2>
-        <p>Precio: ${{ s[3] }} | Disponibles: {{ s[1] - s[2] }}</p>
-        <a href="/vender/{{ s[0] }}" class="btn">VENDER {{ s[0] }}</a>
-    </div>
-    {% endfor %}
-</body>
-</html>
-"""
+# ✅ Esto se ejecuta cuando Gunicorn importa el módulo
+init_db()
+
+HTML = """..."""  # tu HTML igual que antes
 
 @app.route('/')
 def index():
@@ -57,7 +34,10 @@ def vender(tipo):
     return redirect('/')
 
 if __name__ == "__main__":
-    init_db()
     port = int(os.environ.get("PORT", 8080))
-    # Esto es lo que Railway necesita para no apagar el contenedor
     app.run(host='0.0.0.0', port=port, debug=False)
+```
+
+También verifica que en Railway tengas configurado el **Start Command** como:
+```
+gunicorn main:app --bind 0.0.0.0:$PORT
