@@ -13,28 +13,30 @@ def init_db():
             tipo TEXT PRIMARY KEY, total INTEGER, vendidos INTEGER, precio REAL
         )
     ''')
+    # Precios iniciales sugeridos
     data = [('VIP', 1000, 0, 1500.0), ('Regular', 3500, 0, 500.0), ('Guest', 500, 0, 0.0)]
     cursor.executemany("INSERT OR IGNORE INTO stock VALUES (?, ?, ?, ?)", data)
     conn.commit()
     conn.close()
 
-# --- DISEÑO PARA EL VENDEDOR (PÚBLICO) ---
-HTML_VENDEDOR = """<!DOCTYPE html>
+# --- VISTA DEL VENDEDOR (Lo que ve el público/empleado) ---
+HTML_VENTAS = """<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>MXL - VENTAS</title>
+    <title>SISTEMA MXL - VENTAS</title>
     <style>
         body { font-family: sans-serif; background: #121212; color: white; text-align: center; padding: 15px; }
-        .card { background: #1E1E1E; border-radius: 15px; margin-bottom: 15px; padding: 20px; border-left: 6px solid #D4AF37; }
+        .card { background: #1E1E1E; border-radius: 15px; margin-bottom: 15px; padding: 20px; border-left: 6px solid #D4AF37; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
         .btn-vender { background: #D4AF37; color: black; text-decoration: none; padding: 18px; border-radius: 12px; display: block; font-weight: bold; font-size: 1.2em; margin-top: 10px; }
-        h1 { color: #D4AF37; }
-        .price { color: #4CAF50; font-size: 1.3em; font-weight: bold; }
+        .btn-vender:active { background: #b8972f; transform: scale(0.98); }
+        h1 { color: #D4AF37; text-transform: uppercase; }
+        .price { color: #4CAF50; font-size: 1.4em; font-weight: bold; margin: 10px 0; }
     </style>
 </head>
 <body>
     <h1>SISTEMA MXL</h1>
-    <p>PUNTO DE VENTA AUTOMÁTICO</p>
+    <p style="color:#888;">Punto de Venta Autorizado</p>
     {% for s in data %}
     <div class="card">
         <h2>{{ s[0] }}</h2>
@@ -46,35 +48,36 @@ HTML_VENDEDOR = """<!DOCTYPE html>
 </body>
 </html>"""
 
-# --- DISEÑO PARA EL ADMINISTRADOR (SOLO TÚ) ---
+# --- VISTA DEL DUEÑO (Solo para cambiar precios) ---
 HTML_ADMIN = """<!DOCTYPE html>
 <html>
 <head>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>MXL - PANEL CONTROL</title>
     <style>
-        body { font-family: sans-serif; background: #f4f4f4; color: #333; padding: 20px; }
-        .panel { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); max-width: 500px; margin: auto; }
-        h1 { color: #121212; border-bottom: 2px solid #D4AF37; padding-bottom: 10px; }
-        .row { margin-bottom: 20px; padding: 10px; border-bottom: 1px solid #ddd; }
-        input { width: 100%; padding: 10px; margin-top: 5px; border-radius: 5px; border: 1px solid #ccc; font-size: 1.1em; }
-        .btn-save { background: #2ecc71; color: white; border: none; width: 100%; padding: 15px; border-radius: 10px; font-weight: bold; font-size: 1.1em; cursor: pointer; }
-        .back { display: block; text-align: center; margin-top: 20px; color: #666; text-decoration: none; }
+        body { font-family: sans-serif; background: #f0f2f5; color: #333; padding: 20px; }
+        .panel { background: white; padding: 25px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1); max-width: 450px; margin: auto; }
+        h1 { color: #121212; border-bottom: 3px solid #D4AF37; padding-bottom: 10px; font-size: 1.5em; }
+        label { font-weight: bold; display: block; margin-top: 15px; }
+        input { width: 100%; padding: 12px; margin-top: 5px; border-radius: 8px; border: 1px solid #ddd; font-size: 1.1em; box-sizing: border-box; }
+        .btn-save { background: #27ae60; color: white; border: none; width: 100%; padding: 18px; border-radius: 12px; font-weight: bold; font-size: 1.1em; margin-top: 25px; cursor: pointer; }
+        .btn-save:active { background: #219150; }
+        .footer-link { display: block; text-align: center; margin-top: 20px; color: #888; text-decoration: none; font-size: 0.9em; }
     </style>
 </head>
 <body>
     <div class="panel">
-        <h1>⚙️ Ajustes de Precios</h1>
+        <h1>⚙️ Panel de Dueño (Precios)</h1>
         <form action="/update_prices" method="POST">
             {% for s in data %}
-            <div class="row">
-                <label>Precio de <b>{{ s[0] }}</b>:</label>
+            <div>
+                <label>Precio Ticket {{ s[0] }}:</label>
                 <input type="number" name="precio_{{ s[0] }}" value="{{ s[3] }}" step="0.01">
             </div>
             {% endfor %}
-            <button type="submit" class="btn-save">GUARDAR CAMBIOS</button>
+            <button type="submit" class="btn-save">ACTUALIZAR TODOS LOS PRECIOS</button>
         </form>
-        <a href="/" class="back">← Volver a Ventas</a>
+        <a href="/" class="footer-link">Ver pantalla de ventas →</a>
     </div>
 </body>
 </html>"""
@@ -85,9 +88,9 @@ def index():
     conn = sqlite3.connect('/tmp/mxl_tickets.db')
     data = conn.execute('SELECT * FROM stock').fetchall()
     conn.close()
-    return render_template_string(HTML_VENDEDOR, data=data)
+    return render_template_string(HTML_VENTAS, data=data)
 
-@app.route('/admin-mxl') # RUTA SECRETA
+@app.route('/admin-mxl') # ESTA ES TU RUTA SECRETA
 def admin():
     init_db()
     conn = sqlite3.connect('/tmp/mxl_tickets.db')
